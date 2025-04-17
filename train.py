@@ -1,8 +1,6 @@
 import torch
 import torchvision
-from mask.dataset import MaskedFaceTestDataset
-
-# from cnn.transforms import img_transforms
+from mask.dataset import MaskedFaceTestDataset, create_augmented_dataset
 from mask.model import get_model
 from mask.metrics import model_evaluate
 
@@ -13,9 +11,11 @@ num_classes = (
     4  # 3 classes (with_mask, without_mask, mask_weared_incorrect) + background
 )
 
+# Load pretrained model
 model = get_model(num_classes)
 model.to(device)
 
+# Validation Dataset
 val_dataset = MaskedFaceTestDataset(
     "MaskedFace/val", img_transforms=torchvision.transforms.ToTensor()
 )
@@ -24,9 +24,11 @@ val_loader = torch.utils.data.DataLoader(
 )
 print("Validation dataset size:", len(val_dataset))
 
+# Training (Augmented) Dataset
 train_dataset = MaskedFaceTestDataset(
     "MaskedFace/train", img_transforms=torchvision.transforms.ToTensor()
 )
+train_dataset = create_augmented_dataset(train_dataset)
 train_loader = torch.utils.data.DataLoader(
     train_dataset, batch_size=1, shuffle=True, num_workers=4
 )

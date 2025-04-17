@@ -2,8 +2,12 @@ from PIL import Image
 import os
 import glob
 import torch
-from torch.utils.data import Dataset
+import numpy as np
+from torch.utils.data import Dataset, ConcatDataset
 import torchvision.transforms as T
+
+import albumentations as A
+from albumentations.pytorch import ToTensorV2
 
 from mask.utils import parse_xml
 
@@ -56,5 +60,109 @@ class MaskedFaceTestDataset(Dataset):
         return len(self.imgs)
 
 
-if __name__ == "__main__":
-    print("Dataset loaded")
+class AugmentedMaskDataset(Dataset):
+    def __init__(self, dataset, transform):
+        self.dataset = dataset
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        img, target = self.dataset[idx]
+
+        # Convert PIL image to numpy array if needed
+        if not isinstance(img, np.ndarray):
+            img = np.array(img)
+
+        # Extract boxes and labels for albumentations format
+        boxes = target["boxes"].numpy()
+        labels = target["labels"].numpy()
+
+        # Format conversion - assuming XYXY format
+        transformed = self.transform(image=img, bboxes=boxes, category_ids=labels)
+
+        # Update with transformed values
+        img_transformed = transformed["image"]
+        boxes_transformed = torch.tensor(transformed["bboxes"], dtype=torch.float32)
+        labels_transformed = torch.tensor(
+            transformed["category_ids"], dtype=torch.int64
+        )
+
+        # Update target with new boxes and labels
+        new_target = {
+            "boxes": boxes_transformed,
+            "labels": labels_transformed,
+            "area": (boxes_transformed[:, 3] - boxes_transformed[:, 1])
+            * (boxes_transformed[:, 2] - boxes_transformed[:, 0]),
+            "iscrowd": target["iscrowd"],
+        }
+
+        return img_transformed, new_target
+
+
+def create_augmented_dataset(dataset):
+    # Define different augmentation pipelines
+
+    # 1. Mild augmentations
+    transform_mild = A.Compose(
+        [
+            A.RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1, p=0.5),
+            A.HorizontalFlip(p=0.5),
+            A.RandomScale(scale_limit=0.1, p=0.5),
+            ToTensorV2(),
+        ],
+        bbox_params=A.BboxParams(format="pascal_voc", label_fields=["category_ids"]),
+    )
+
+    # 2. Color/lighting augmentations
+    transform_color = A.Compose(
+        [
+            A.OneOf(
+                [
+                    A.RandomBrightnessContrast(p=1),
+                    A.HueSaturationValue(p=1),
+                    A.RGBShift(p=1),
+                ],
+                p=0.9,
+            ),
+            A.GaussianBlur(blur_limit=(1, 3), p=0.3),
+            A.GaussNoise(var_limit=(5.0, 20.0), p=0.3),
+            ToTensorV2(),
+        ],
+        bbox_params=A.BboxParams(format="pascal_voc", label_fields=["category_ids"]),
+    )
+
+    # 3. Geometric augmentations
+    transform_geometric = A.Compose(
+        [
+            A.HorizontalFlip(p=0.5),
+            A.ShiftScaleRotate(
+                shift_limit=0.05, scale_limit=0.1, rotate_limit=10, p=0.5
+            ),
+            A.RandomCrop(height=480, width=480, p=0.3),
+            A.Resize(height=512, width=512),
+            ToTensorV2(),
+        ],
+        bbox_params=A.BboxParams(format="pascal_voc", label_fields=["category_ids"]),
+    )
+
+    # Create augmented versions of the dataset
+    augmented_mild = AugmentedMaskDataset(dataset, transform_mild)
+    augmented_color = AugmentedMaskDataset(dataset, transform_color)
+    augmented_geometric = AugmentedMaskDataset(dataset, transform_geometric)
+
+    # Combine all datasets
+    combined_dataset = ConcatDataset(
+        [
+            dataset,  # Original data
+            augmented_mild,  # With mild augmentations
+            augmented_color,  # With color augmentations
+            augmented_geometric,  # With geometric augmentations
+        ]
+    )
+
+    print(f"Original dataset size: {len(dataset)}")
+    print(f"Augmented dataset size: {len(combined_dataset)}")
+
+    return combined_dataset
