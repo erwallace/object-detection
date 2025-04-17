@@ -4,7 +4,7 @@ import torch
 def model_evaluate(test_loader, model, device="cuda") -> float:
     """Evaluate the model on the test dataset and calculate MAPE."""
     model.eval()
-    
+
     with torch.no_grad():
         predictions = []
         truths = []
@@ -26,13 +26,23 @@ def count_(targets) -> torch.Tensor:
     if isinstance(targets[0], list) and len(targets[0]) == 1:
         targets = [t[0] for t in targets]
 
-    return torch.stack([
-        torch.tensor([label.tolist().count(0), label.tolist().count(1), label.tolist().count(2)])
-        for label in (t["labels"] for t in targets)
-    ])
-            
+    return torch.stack(
+        [
+            torch.tensor(
+                [
+                    label.tolist().count(0),
+                    label.tolist().count(1),
+                    label.tolist().count(2),
+                ]
+            )
+            for label in (t["labels"] for t in targets)
+        ]
+    )
 
-def mean_absolute_percentage_error(y_true: torch.Tensor, y_pred: torch.Tensor, epsilon=1e-10) -> float:
+
+def mean_absolute_percentage_error(
+    y_true: torch.Tensor, y_pred: torch.Tensor, epsilon=1e-10
+) -> float:
     """
     Calculate the Mean Absolute Percentage Error (MAPE) between two Nx3 tensors.
 

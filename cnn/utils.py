@@ -1,12 +1,13 @@
 import xml.etree.ElementTree as ET
 
+
 def parse_xml(xml_file):
     tree = ET.parse(xml_file)
     root = tree.getroot()
     bboxes = []
     labels = []
-    for boxes in root.iter('object'):
-        filename = root.find('filename').text
+    for boxes in root.iter("object"):
+        filename = root.find("filename").text
         ymin, xmin, ymax, xmax = None, None, None, None
         ymin = int(boxes.find("bndbox/ymin").text)
         xmin = int(boxes.find("bndbox/xmin").text)

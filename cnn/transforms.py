@@ -19,7 +19,9 @@ def find_largest_dimensions(dataloaders: list) -> tuple:
     return max_width, max_height
 
 
-def img_transforms(train: bool, max_width:int=600, max_height:int=600) -> torchvision.transforms.Compose:
+def img_transforms(
+    train: bool, max_width: int = 600, max_height: int = 600
+) -> torchvision.transforms.Compose:
     """Get the transformation pipeline for the dataset.
 
     Args:
@@ -33,7 +35,7 @@ def img_transforms(train: bool, max_width:int=600, max_height:int=600) -> torchv
     transforms += [
         T.PILToTensor(),
         T.ConvertImageDtype(torch.float),
-        T.Pad((0, 0, max_width, max_height))
+        T.Pad((0, 0, max_width, max_height)),
     ]
 
     if train:
@@ -45,9 +47,8 @@ def img_transforms(train: bool, max_width:int=600, max_height:int=600) -> torchv
 
     # for debugging
     transforms.append(T.ToPILImage())
-        
+
     return T.Compose(transforms)
 
+
 # pad images to same size for batching
-
-
