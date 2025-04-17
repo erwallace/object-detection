@@ -23,8 +23,9 @@ def model_evaluate(test_loader, model, device="cuda") -> float:
 
 def count_(targets) -> torch.Tensor:
     """Count the number of masks in the test dataset."""
-    if isinstance(targets[0], list) and len(targets[0]) == 1:
-        targets = [t[0] for t in targets]
+    if isinstance(targets, list):
+        if isinstance(targets[0], list) and len(targets[0]) == 1:
+            targets = [t[0] for t in targets]
 
     return torch.stack(
         [
