@@ -9,7 +9,7 @@ from mask.utils import parse_xml
 
 
 class MaskedFaceTestDataset(Dataset):
-    def __init__(self, root, img_transforms=[T.ToTensor()], target_transforms=None):
+    def __init__(self, root, img_transforms=T.ToTensor(), target_transforms=None):
         super(MaskedFaceTestDataset, self).__init__()
         self.imgs = sorted(glob.glob(os.path.join(root, "*.png")))
         self.img_transforms = img_transforms
