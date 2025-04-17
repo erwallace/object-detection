@@ -36,7 +36,9 @@ params = [p for p in model.parameters() if p.requires_grad]
 optimizer = torch.optim.SGD(params, lr=0.005, momentum=0.9, weight_decay=0.0005)
 
 # Training loop
-num_epochs = 10
+num_epochs = 100
+best_mape = float("inf")
+best_epoch = -1
 
 print("Training...")
 for epoch in range(num_epochs):
@@ -70,6 +72,11 @@ for epoch in range(num_epochs):
         f"Epoch [{epoch+1}/{num_epochs}], Training Loss: {running_loss/len(train_loader):.4f}, Validation MAPE: {mape:.4f}%"
     )
 
-# Save the model's weights (state_dict)
-save_path = "weights/testing_10_epoch.pth"
-torch.save(model.state_dict(), save_path)
+    if mape < best_mape:
+        best_mape = mape
+        best_epoch = epoch + 1
+
+        # Save the best model
+        save_path = f"weights/pretrained_{num_epochs}_epoch_{best_epoch}.pth"
+        torch.save(model.state_dict(), save_path)
+        print(f"New best model saved with MAPE: {best_mape:.4f}% (Epoch {best_epoch})")
