@@ -1,8 +1,7 @@
 import torch
 import torchvision
 from mask.dataset import MaskedFaceTestDataset
-
-# from cnn.transforms import img_transforms
+from mask.oversampling import oversample
 from mask.model import get_model
 from mask.metrics import model_evaluate
 
@@ -13,9 +12,11 @@ num_classes = (
     4  # 3 classes (with_mask, without_mask, mask_weared_incorrect) + background
 )
 
+# Load the pre-trained model
 model = get_model(num_classes)
 model.to(device)
 
+# Validation Dataset
 val_dataset = MaskedFaceTestDataset(
     "MaskedFace/val", img_transforms=torchvision.transforms.ToTensor()
 )
@@ -24,9 +25,18 @@ val_loader = torch.utils.data.DataLoader(
 )
 print("Validation dataset size:", len(val_dataset))
 
+# Training Dataset
 train_dataset = MaskedFaceTestDataset(
     "MaskedFace/train", img_transforms=torchvision.transforms.ToTensor()
 )
+# OverSampling
+train_dataset = oversample(train_dataset, iterations=1)
+print("Oversampling dataset")
+
+# # Augmented Dataset
+# from mask.dataset import create_augmented_dataset
+# training_dataset = create_augmented_dataset(train_dataset)
+
 train_loader = torch.utils.data.DataLoader(
     train_dataset, batch_size=1, shuffle=True, num_workers=4
 )
