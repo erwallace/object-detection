@@ -1,10 +1,10 @@
 import torch
 import torchvision
-from cnn.dataset import MaskedFaceDataset
+from mask.dataset import MaskedFaceTestDataset
 
 # from cnn.transforms import img_transforms
-from cnn.model import get_model
-from cnn.metrics import model_evaluate
+from mask.model import get_model
+from mask.metrics import model_evaluate
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 print(device)
@@ -16,7 +16,7 @@ num_classes = (
 model = get_model(num_classes)
 model.to(device)
 
-val_dataset = MaskedFaceDataset(
+val_dataset = MaskedFaceTestDataset(
     "MaskedFace/val", img_transforms=torchvision.transforms.ToTensor()
 )
 val_loader = torch.utils.data.DataLoader(
@@ -24,7 +24,7 @@ val_loader = torch.utils.data.DataLoader(
 )
 print("Validation dataset size:", len(val_dataset))
 
-train_dataset = MaskedFaceDataset(
+train_dataset = MaskedFaceTestDataset(
     "MaskedFace/train", img_transforms=torchvision.transforms.ToTensor()
 )
 train_loader = torch.utils.data.DataLoader(
@@ -71,5 +71,5 @@ for epoch in range(num_epochs):
     )
 
 # Save the model's weights (state_dict)
-save_path = "models/testing_10_epoch.pth"
+save_path = "weights/testing_10_epoch.pth"
 torch.save(model.state_dict(), save_path)

@@ -5,12 +5,12 @@ import torch
 from torch.utils.data import Dataset
 import torchvision.transforms as T
 
-from utils import parse_xml
+from mask.utils import parse_xml
 
 
-class MaskedFaceDataset(Dataset):
+class MaskedFaceTestDataset(Dataset):
     def __init__(self, root, img_transforms=[T.ToTensor()], target_transforms=None):
-        super(MaskedFaceDataset, self).__init__()
+        super(MaskedFaceTestDataset, self).__init__()
         self.imgs = sorted(glob.glob(os.path.join(root, "*.png")))
         self.img_transforms = img_transforms
         self.target_transforms = target_transforms
@@ -54,3 +54,7 @@ class MaskedFaceDataset(Dataset):
 
     def __len__(self):
         return len(self.imgs)
+
+
+if __name__ == "__main__":
+    print("Dataset loaded")

@@ -1,4 +1,4 @@
-from utils import parse_xml
+from mask.utils import parse_xml
 from PIL import Image, ImageDraw
 import os
 

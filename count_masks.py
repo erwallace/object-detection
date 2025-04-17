@@ -1,5 +1,5 @@
-from cnn.metrics import count_, mean_absolute_percentage_error
-from cnn.model import load_model
+from mask.metrics import count_, mean_absolute_percentage_error
+from mask.model import load_model
 import torch
 from torch.utils.data import DataLoader
 
@@ -32,14 +32,14 @@ def count_masks(test_dataset, model_path: str, device: str = "cuda") -> torch.Te
 
 
 if __name__ == "__main__":
-    from cnn.dataset import MaskedFaceDataset
+    from mask.dataset import MaskedFaceTestDataset
     import torchvision
 
     # Load the test dataset
-    val_dataset = MaskedFaceDataset(
+    val_dataset = MaskedFaceTestDataset(
         "MaskedFace/val", img_transforms=torchvision.transforms.ToTensor()
     )
-    WEIGHTS_PATH = "models/pretrained_epoch_10.pth"
+    WEIGHTS_PATH = "weights/pretrained_epoch_10.pth"
 
     # Count masks in the test dataset
     counts = count_masks(val_dataset, WEIGHTS_PATH)

@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mask"
+version = "0.0.0"
+description = "PyTorch object detection for surgical mask images"
+readme = "README.md"
+authors = [
+    {name = "Ewan Wallace"}
+]
+requires-python = ">=3.10"
+dependencies = [
+    "torch",
+    "torchvision",
+    "numpy",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pre-commit",
+]
